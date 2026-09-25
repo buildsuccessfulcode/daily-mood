@@ -1,36 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Daily Mood
 
-## Getting Started
+Web app quote harian untuk semua: 1 quote per kategori, diunduh sebagai kartu PNG
+3:4 dengan watermark yang bisa diatur admin. Konten diisi otomatis oleh Gemini dan
+dibersihkan setelah 14 hari.
 
-First, run the development server:
+## Fitur
+
+- 4 kategori Gen Z: Sadvibes & HTS, Lucu & Absurd, Manifest & Grind, Real Talk / POV.
+- Kartu estetik dengan gradien, ikon, dan **download PNG** (html-to-image) + watermark.
+- **Dashboard admin** (`/admin`): simpan AI key Gemini (terenkripsi AES-256-GCM),
+  atur watermark, manage kategori & prompt, generate/cleanup manual, ganti password.
+- **Cron Vercel**: generate harian (00:00 WIB) & cleanup quote > 14 hari (01:00 WIB).
+
+## Stack
+
+Next.js 16 (App Router) · React 19 · TypeScript · Tailwind v4 · Supabase Postgres ·
+Google Gemini `gemini-2.5-flash` · `html-to-image`.
+
+## Mulai Cepat
 
 ```bash
+npm install
+cp .env.example .env.local   # isi kredensial
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+1. Jalankan `supabase/schema.sql` lalu `supabase/seed.sql` di Supabase SQL Editor.
+2. Isi `.env.local` (lihat `.env.example`).
+3. Login `/admin/login` (default `admin` / `admin123`), isi AI key, lalu **Generate**.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Dokumentasi
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Dokumen | Isi |
+| :--- | :--- |
+| [`docs/CONTEXT.md`](docs/CONTEXT.md) | Ringkasan proyek untuk agen AI (baca dulu). |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Arsitektur & alur data. |
+| [`docs/DATABASE.md`](docs/DATABASE.md) | Skema tabel, RLS, cleanup. |
+| [`docs/API.md`](docs/API.md) | Server actions, route cron, tipe. |
+| [`docs/SETUP.md`](docs/SETUP.md) | Setup lokal, Supabase, deploy Vercel. |
+| [`docs/SECURITY.md`](docs/SECURITY.md) | Enkripsi, auth, header, validasi. |
 
-## Learn More
+## Perintah
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run dev            # dev (Turbopack)
+npm run build          # build produksi
+npm run lint           # eslint
+npx tsc --noEmit       # typecheck
+```

@@ -1,23 +1,23 @@
-# 📘 Spesifikasi Pengembangan & PRD: SMK Daily Mood
+# 📘 Spesifikasi Pengembangan & PRD: Daily Mood
 
-Dokumen ini berisi gambaran teknis lengkap untuk pembangunan aplikasi **SMK Daily Mood**. Dokumen ini dirancang sebagai panduan teknis utama bagi pengembang maupun instruksi konteks untuk AI coding assistant.
+Dokumen ini berisi gambaran teknis lengkap untuk pembangunan aplikasi **Daily Mood**. Dokumen ini dirancang sebagai panduan teknis utama bagi pengembang maupun instruksi konteks untuk AI coding assistant.
 
 ---
 
 ## 1. Executive Summary & PRD
 
 ### 1.1 Product Vision
-**SMK Daily Mood** adalah web app harian untuk siswa SMK yang menyajikan 1 kata-kata/quote harian khas Gen Z berdasarkan 4 kategori utama. Aplikasi ini mempermudah siswa mengekspresikan mood harian mereka ke media sosial (WhatsApp Status, Instagram Story, TikTok) melalui kartu visual (*quote card*) yang estetis, dinamis, dan dilengkapi watermark perlindungan brand.
+**Daily Mood** adalah web app harian untuk Pengguna yang menyajikan 1 kata-kata/quote harian khas Gen Z berdasarkan 4 kategori utama. Aplikasi ini mempermudah siswa mengekspresikan mood harian mereka ke media sosial (WhatsApp Status, Instagram Story, TikTok) melalui kartu visual (*quote card*) yang estetis, dinamis, dan dilengkapi watermark perlindungan brand.
 
 ### 1.2 Target Audience
-* **Segmen Utama:** Siswa SMK di Indonesia (Usia 15–18 tahun).
+* **Segmen Utama:** Pengguna di Indonesia (Usia 15–18 tahun).
 * **Karakteristik:** Menyukai konten *relatable* seputar PKL, tugas praktek, hubungan HTS/galau, motivasi *glow up*, serta sindiran halus (*real talk*).
 
 ### 1.3 Key Features (MVP)
 1. **Daily Quote Viewer:** Menampilkan kata-kata harian unik sesuai kategori.
 2. **Category Switcher:** Pilihan 4 kategori (*Sadvibes & HTS*, *Lucu & Absurd*, *Manifest & Grind*, *Real Talk / POV*).
 3. **Dynamic Aesthetic Card Engine:** Kartu visual berbasis gradien dinamis dan ikon (Lucide Icons / Emoji Native) dengan ukuran teks *responsive*.
-4. **Client-side Image Exporter & Watermark:** Fitur *Download PNG* instan yang merender kartu lengkap dengan logo dan handle watermark aplikasi (`@smk.mood`).
+4. **Client-side Image Exporter & Watermark:** Fitur *Download PNG* instan yang merender kartu lengkap dengan logo dan handle watermark aplikasi (`@dailymood`).
 5. **Automated Content Pipeline:** Cron Job harian yang memanggil Gemini API untuk mengisi database dan menghapus data lama secara otomatis.
 
 ---
@@ -104,22 +104,22 @@ export const GEMINI_CATEGORY_CONFIG = {
   SADVIBES: {
     icon: 'cloud-rain',
     gradient: 'from-slate-900 via-indigo-950 to-slate-900',
-    prompt: `Kamu adalah konten kreator anak muda. Buat 1 quote galau modern (25-35 kata) tentang HTS, ghosting, atau overthinking anak SMK. Bahasa gaul, emosional, mendalam, tanpa alay berlebihan.`
+    prompt: `Kamu adalah konten kreator anak muda. Buat 1 quote galau modern (25-35 kata) tentang HTS, ghosting, atau overthinking anak muda. Bahasa gaul, emosional, mendalam, tanpa alay berlebihan.`
   },
   RANDOM: {
     icon: 'laugh',
     gradient: 'from-amber-500 via-orange-600 to-red-600',
-    prompt: `Kamu adalah komedian sarkas. Buat 1 quote lucu dan sarkas (25-35 kata) tentang penderitaan tugas sekolah, praktek PKL, atau kelakuan absurd harian anak SMK.`
+    prompt: `Kamu adalah komedian sarkas. Buat 1 quote lucu dan sarkas (25-35 kata) tentang penderitaan tugas sekolah, praktek PKL, atau kelakuan absurd harian anak muda.`
   },
   MANIFEST: {
     icon: 'zap',
     gradient: 'from-emerald-600 via-teal-700 to-cyan-900',
-    prompt: `Kamu adalah mentor muda. Buat 1 quote motivasi tajam (25-35 kata) tentang fokus nambah skill, mandiri secara finansial, dan pembuktian diri (lock in/glow up) untuk anak SMK.`
+    prompt: `Kamu adalah mentor muda. Buat 1 quote motivasi tajam (25-35 kata) tentang fokus nambah skill, mandiri secara finansial, dan pembuktian diri (lock in/glow up) untuk anak muda.`
   },
   REALTALK: {
     icon: 'lightbulb',
     gradient: 'from-blue-700 via-slate-800 to-indigo-950',
-    prompt: `Kamu adalah pengamat sosial remaja. Buat 1 quote Real Talk atau POV (25-35 kata) tentang kenyataan pertemanan, kedewasaan, atau pelajaran hidup remaja SMK yang jujur.`
+    prompt: `Kamu adalah pengamat sosial remaja. Buat 1 quote Real Talk atau POV (25-35 kata) tentang kenyataan pertemanan, kedewasaan, atau pelajaran hidup remaja yang jujur.`
   }
 };
 ```
@@ -140,7 +140,7 @@ export const GEMINI_CATEGORY_CONFIG = {
 <div ref={cardRef} className="w-[360px] h-[480px] rounded-3xl p-8 flex flex-col justify-between relative overflow-hidden bg-gradient-to-br ...">
   {/* Subtle Background Watermark */}
   <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none rotate-[-20deg] text-4xl font-extrabold select-none">
-    @smk.mood
+    @dailymood
   </div>
 
   {/* Header: Category Badge & Icon */}
@@ -165,9 +165,9 @@ export const GEMINI_CATEGORY_CONFIG = {
       <div className="w-6 h-6 rounded-full bg-white text-slate-900 flex items-center justify-center font-bold text-[10px]">
         S
       </div>
-      <span className="font-bold tracking-wider">SMK Daily Mood</span>
+      <span className="font-bold tracking-wider">Daily Mood</span>
     </div>
-    <span className="text-white/50 font-mono">@smk.mood</span>
+    <span className="text-white/50 font-mono">@dailymood</span>
   </div>
 </div>
 ```

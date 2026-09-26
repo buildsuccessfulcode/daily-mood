@@ -89,3 +89,97 @@ create policy "public read categories" on public.categories
 drop policy if exists "public read quotes" on public.quotes;
 create policy "public read quotes" on public.quotes
     for select using (true);
+
+-- 5. Journal harian pengguna (maksimal 1 entri per hari, immutable)
+do $$
+begin
+    create type public.user_mood_type as enum ('SAD', 'TIRED', 'NEUTRAL', 'HAPPY', 'EXCITED');
+exception
+    when duplicate_object then null;
+end $$;
+
+create table if not exists public.user_journals (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid not null references auth.users(id) on delete cascade,
+    journal_date date not null,
+    mood public.user_mood_type not null,
+    entry_text text not null,
+    ai_response text not null,
+    created_at timestamptz not null default now(),
+    constraint unique_user_daily_journal unique (user_id, journal_date)
+);
+
+create index if not exists idx_user_journals_lookup
+    on public.user_journals (user_id, journal_date desc);
+
+-- 6. Profil pengguna (nickname + data dari Google)
+create table if not exists public.profiles (
+    id uuid primary key references auth.users(id) on delete cascade,
+    nickname varchar(24),
+    display_name varchar(80),
+    avatar_url text,
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now()
+);
+
+drop trigger if exists trg_profiles_updated on public.profiles;
+create trigger trg_profiles_updated
+    before update on public.profiles
+    for each row execute function public.set_updated_at();
+
+-- Nickname unik (case-insensitive), boleh null selama pendaftaran belum selesai
+create unique index if not exists idx_profiles_nickname_unique
+    on public.profiles (lower(nickname))
+    where nickname is not null;
+
+-- Auto-buat profil saat user baru dibuat (email/password maupun Google OAuth)
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+    insert into public.profiles (id, nickname, display_name, avatar_url)
+    values (
+        new.id,
+        nullif(trim(new.raw_user_meta_data ->> 'nickname'), ''),
+        coalesce(
+            new.raw_user_meta_data ->> 'full_name',
+            new.raw_user_meta_data ->> 'name'
+        ),
+        new.raw_user_meta_data ->> 'avatar_url'
+    )
+    on conflict (id) do nothing;
+    return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+    after insert on auth.users
+    for each row execute function public.handle_new_user();
+
+-- Row Level Security: journal & profil hanya untuk pemiliknya
+alter table public.user_journals enable row level security;
+alter table public.profiles enable row level security;
+
+drop policy if exists "users read own journals" on public.user_journals;
+create policy "users read own journals" on public.user_journals
+    for select to authenticated using (auth.uid() = user_id);
+
+drop policy if exists "users insert own journals" on public.user_journals;
+create policy "users insert own journals" on public.user_journals
+    for insert to authenticated with check (auth.uid() = user_id);
+
+drop policy if exists "users read own profile" on public.profiles;
+create policy "users read own profile" on public.profiles
+    for select to authenticated using (auth.uid() = id);
+
+drop policy if exists "users insert own profile" on public.profiles;
+create policy "users insert own profile" on public.profiles
+    for insert to authenticated with check (auth.uid() = id);
+
+drop policy if exists "users update own profile" on public.profiles;
+create policy "users update own profile" on public.profiles
+    for update to authenticated using (auth.uid() = id) with check (auth.uid() = id);

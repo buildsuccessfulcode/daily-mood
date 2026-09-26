@@ -109,3 +109,61 @@ export async function generateQuote(
 
   throw new Error(describeError(lastError));
 }
+
+const JOURNAL_SYSTEM_PROMPT = [
+  "Kamu adalah 'Daily Companion', teman terpercaya yang ramah, empatis, hangat, dan tidak pernah menggurui untuk anak muda Indonesia.",
+  "Tugasmu:",
+  "1. Baca rangkuman curhatan harian pengguna.",
+  "2. Berikan balasan empati yang tulus dalam 100-150 kata.",
+  "3. Struktur balasan: (a) validasi emosi pengguna, (b) soroti hal positif atau pembelajaran kecil dari ceritanya, (c) penutup hangat dan penyemangat istirahat.",
+  "4. Gaya bahasa: Bahasa Indonesia gaul santai, ramah, hangat, memakai 'aku' dan 'kamu'. Dilarang memakai bahasa baku seperti surat resmi atau gaya guru BK.",
+  "5. Jangan menceramahi, menghakimi, atau memberi nasihat medis.",
+  "6. Safety: jika cerita mengindikasikan self-harm atau keinginan mengakhiri hidup, sampaikan empati hangat lalu arahkan dengan sopan ke layanan bantuan krisis kesehatan mental Indonesia (SEJIWA 119 ext 8 atau Into The Light Indonesia).",
+  "Balas hanya teks balasan, tanpa label, tanpa tanda kutip, dan tanpa emoji.",
+].join("\n");
+
+export type GenerateJournalOptions = {
+  nickname?: string | null;
+  model?: string;
+};
+
+export async function generateJournalResponse(
+  apiKey: string,
+  mood: string,
+  entryText: string,
+  options: GenerateJournalOptions = {},
+): Promise<string> {
+  const ai = new GoogleGenAI({ apiKey });
+  const model = options.model ?? GEMINI_MODEL;
+  const nickname = options.nickname?.trim();
+  const systemInstruction = nickname
+    ? `${JOURNAL_SYSTEM_PROMPT}\nSapa pengguna dengan panggilan "${nickname}" secara natural satu kali saja.`
+    : JOURNAL_SYSTEM_PROMPT;
+  const contents = `[Mood hari ini: ${mood}]\n[Curhatan user]: "${entryText}"`;
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
+    try {
+      const response = await ai.models.generateContent({
+        model,
+        contents,
+        config: {
+          systemInstruction,
+          temperature: 1.0,
+          topP: 0.95,
+        },
+      });
+      const text = (response.text ?? "").trim();
+      if (!text) throw new Error("Gemini tidak mengembalikan teks");
+      return text.slice(0, 2000);
+    } catch (error) {
+      lastError = error;
+      const status = statusOf(error);
+      const retryable = status !== undefined && RETRYABLE_STATUS.has(status);
+      if (!retryable || attempt === MAX_ATTEMPTS - 1) break;
+      await sleep(RETRY_DELAYS_MS[attempt] ?? 2000);
+    }
+  }
+
+  throw new Error(describeError(lastError));
+}

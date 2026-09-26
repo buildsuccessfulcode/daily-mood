@@ -38,10 +38,11 @@
 - `X-Frame-Options: DENY`
 - `Permissions-Policy: camera=(), microphone=(), geolocation=()`
 - `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload`
-- `Content-Security-Policy`: `default-src 'self'`; `img-src 'self' data: blob:`;
-  `connect-src 'self' https://*.supabase.co ws: wss:`; `font-src 'self' data:`;
-  `style-src 'self' 'unsafe-inline'`; `script-src 'self' 'unsafe-inline' 'unsafe-eval'`.
-  (`unsafe-inline/eval` diperlukan untuk runtime Next dev; bisa diperketat dengan nonce.)
+- `Content-Security-Policy`: `default-src 'self'`; `img-src 'self' data: blob:
+  https://*.googleusercontent.com`; `connect-src 'self' https://*.supabase.co ws: wss:`;
+  `font-src 'self' data:`; `style-src 'self' 'unsafe-inline'`; `script-src 'self'
+  'unsafe-inline' 'unsafe-eval'`. (`unsafe-inline/eval` diperlukan untuk runtime Next
+  dev; bisa diperketat dengan nonce.)
 
 ## 6. Validasi Input
 
@@ -54,3 +55,29 @@
 
 - Tidak menyimpan gambar di server (0 media storage) -> mengurangi risiko upload berbahaya.
 - Tidak ada endpoint publik yang menerima API key atau operasi tulis tanpa auth.
+
+## 8. Autentikasi Pengguna (Journal)
+
+- Memakai **Supabase Auth** dengan cookie sesi yang dikelola `@supabase/ssr`
+  (`HttpOnly`, `Secure`, `SameSite=Lax`). `proxy.ts` me-refresh token di setiap
+  request, tetapi otorisasi tetap dicek di server action/data layer.
+- Login **hanya Google**. Registrasi manual dihapus, sehingga permukaan serangan
+  password (penyimpanan/kebocoran) tidak ada.
+- `userId` **selalu** diambil dari sesi (`getCurrentUser()`), tidak pernah dari
+  body request. Ini menutup celah pada draf PRD awal (`userId` dari client).
+- Nickname unik dijamin di level DB (index `lower(nickname)`); saat bentrok,
+  `generateUniqueNickname` menambah suffix. `updateProfileAction` memvalidasi
+  pola + keunikan sebelum menyimpan.
+
+## 9. Privasi Journal
+
+- RLS `user_journals`: `select`/`insert` hanya bila `auth.uid() = user_id`.
+- RLS `profiles`: `select`/`insert`/`update` hanya bila `auth.uid() = id`.
+- Nickname unik secara case-insensitive via index `lower(nickname)`.
+- AI key Gemini hanya dibaca lewat service role di server; tidak pernah ke client.
+- Entri journal tidak pernah di-join atau ditampilkan ke user lain.
+
+## 10. Foto Profil
+
+- Avatar Google di-hotlink (`lh3.googleusercontent.com`) -> 0 storage, tidak ada
+  upload. Fallback inisial dirender lokal. Tidak ada file yang disimpan server.

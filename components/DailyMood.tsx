@@ -81,8 +81,8 @@ export function DailyMood({
   };
 
   return (
-    <div className="flex w-full flex-col items-center gap-5">
-      <div className="flex w-full max-w-md items-center gap-2 overflow-x-auto pb-1">
+    <div className="flex w-full flex-col items-center gap-5 sm:gap-6">
+      <div className="no-scrollbar flex w-full max-w-md snap-x items-center gap-2 overflow-x-auto pb-1 sm:max-w-xl">
         {days.map((day) => {
           const isActive = day.dateKey === activeDay.dateKey;
           return (
@@ -92,7 +92,7 @@ export function DailyMood({
               disabled={!day.hasQuotes}
               onClick={() => setActiveDateKey(day.dateKey)}
               className={cn(
-                "flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition",
+                "flex shrink-0 snap-start items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition",
                 isActive
                   ? "border-indigo-400/40 bg-indigo-500/20 text-white"
                   : "border-white/10 bg-white/5 text-white/60 hover:bg-white/10",
@@ -107,7 +107,7 @@ export function DailyMood({
         })}
       </div>
 
-      <div className="flex w-full max-w-md items-center gap-2 overflow-x-auto pb-1">
+      <div className="no-scrollbar flex w-full max-w-md snap-x items-center gap-2 overflow-x-auto pb-1 sm:max-w-xl">
         {activeDay.cards.map((card) => {
           const isActive = card.category.id === active.category.id;
           return (
@@ -116,7 +116,7 @@ export function DailyMood({
               type="button"
               onClick={() => setActiveCategoryId(card.category.id)}
               className={cn(
-                "flex shrink-0 items-center gap-2 rounded-full border px-3.5 py-2 text-xs font-semibold transition",
+                "flex shrink-0 snap-start items-center gap-2 rounded-full border px-3.5 py-2 text-xs font-semibold transition",
                 isActive
                   ? "border-white/30 bg-white text-slate-900"
                   : "border-white/15 bg-white/5 text-white/70 hover:bg-white/10",
@@ -133,8 +133,8 @@ export function DailyMood({
       </div>
 
       <div className="flex w-full justify-center">
-        <div className="flex h-[408px] items-start justify-center overflow-visible min-[400px]:h-[480px]">
-          <div className="origin-top scale-[0.85] min-[400px]:scale-100">
+        <div className="relative h-[326px] w-[245px] min-[320px]:h-[375px] min-[320px]:w-[281px] min-[360px]:h-[432px] min-[360px]:w-[324px] min-[400px]:h-[480px] min-[400px]:w-[360px] min-[1024px]:h-[528px] min-[1024px]:w-[396px]">
+          <div className="origin-top-left scale-[0.68] min-[320px]:scale-[0.78] min-[360px]:scale-[0.9] min-[400px]:scale-100 min-[1024px]:scale-110">
             <QuoteCard
               ref={cardRef}
               data={active}

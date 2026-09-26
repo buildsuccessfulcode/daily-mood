@@ -104,3 +104,67 @@ type Admin = { id: string; username: string; lastLoginAt: string | null };
 - `pickLatestPerCategory(quotes)` -> `Map<categoryId, Quote>` (quote terbaru hari itu).
 - `historyCutoffISO()` -> ISO awal hari (WIB) dari `today - (HISTORY_DAYS - 1)`.
 - `dayLabel(key, todayKey)` -> label hari untuk chip.
+
+## 6. Server Actions Fitur Journal
+
+### `app/auth/actions.ts`
+
+Login pengguna hanya lewat Google (registrasi manual dihapus).
+
+| Action | Argumen | Efek |
+| :--- | :--- | :--- |
+| `signInWithGoogleAction` | `next?` | `signInWithOAuth` -> mengembalikan `{ url }` untuk redirect |
+| `signOutAction` | - | `signOut` lalu redirect `/` |
+
+### `app/journal/actions.ts`
+
+| Action | Argumen | Auth | Efek |
+| :--- | :--- | :--- | :--- |
+| `submitJournalAction` | `mood, entryText` | user | validasi -> Gemini -> insert `user_journals` (1/hari) |
+
+### `app/profile/actions.ts`
+
+| Action | Argumen | Auth | Efek |
+| :--- | :--- | :--- | :--- |
+| `updateProfileAction` | `nickname` | user | update nickname unik di `profiles` |
+
+## 7. Route Handler Auth
+
+### `GET /auth/callback`
+
+```
+code -> exchangeCodeForSession
+  -> profiles.nickname kosong -> generateUniqueNickname(deriveNickname(user))
+  -> redirect ke `next` (default /journal)
+  -> gagal                   -> redirect /login?error=auth
+```
+
+## 8. Tipe Domain Tambahan (`lib/types.ts`)
+
+```ts
+type MoodType = 'SAD' | 'TIRED' | 'NEUTRAL' | 'HAPPY' | 'EXCITED';
+
+type JournalEntry = {
+  id: string;
+  journalDate: string;
+  mood: MoodType;
+  entryText: string;
+  aiResponse: string;
+  createdAt: string;
+};
+
+type MoodHistoryItem = { dateKey: string; mood: MoodType };
+
+type Profile = {
+  id: string;
+  nickname: string | null;
+  displayName: string | null;
+  avatarUrl: string | null;
+};
+```
+
+Konstanta journal (`lib/constants.ts`): `JOURNAL_MIN_WORDS` (20),
+`JOURNAL_MAX_WORDS` (500), `JOURNAL_HISTORY_DAYS` (30), `MOOD_OPTIONS`,
+`NICKNAME_PATTERN`. Helper murni (`lib/journal.ts`): `countWords`,
+`validateEntry`, `nextResetWIB`.
+

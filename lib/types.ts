@@ -47,6 +47,36 @@ export type AdminUser = {
   lastLoginAt: string | null;
 };
 
+export type MoodType = "SAD" | "TIRED" | "NEUTRAL" | "HAPPY" | "EXCITED";
+
+export type MoodOption = {
+  value: MoodType;
+  emoji: string;
+  label: string;
+  hint: string;
+};
+
+export type JournalEntry = {
+  id: string;
+  journalDate: string;
+  mood: MoodType;
+  entryText: string;
+  aiResponse: string;
+  createdAt: string;
+};
+
+export type MoodHistoryItem = {
+  dateKey: string;
+  mood: MoodType;
+};
+
+export type Profile = {
+  id: string;
+  nickname: string | null;
+  displayName: string | null;
+  avatarUrl: string | null;
+};
+
 export type ActionResult =
   | { ok: true; message?: string; data?: unknown }
   | { ok: false; error: string };

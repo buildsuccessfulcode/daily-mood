@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import { DailyMood } from "@/components/DailyMood";
-import { Logo } from "@/components/Logo";
+import { SiteHeader } from "@/components/SiteHeader";
 import { isSupabaseConfigured } from "@/lib/config";
 import { getDailyMood, getWatermark } from "@/lib/data";
 
@@ -15,22 +15,8 @@ export default async function HomePage() {
   ]);
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 py-8 sm:py-12">
-      <header className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Logo size={36} />
-          <div className="leading-tight">
-            <p className="text-sm font-extrabold tracking-wide">Daily Mood</p>
-            <p className="text-[11px] text-white/50">Quote harian untuk semua</p>
-          </div>
-        </div>
-        <Link
-          href="/admin"
-          className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/70 transition hover:bg-white/10"
-        >
-          Admin
-        </Link>
-      </header>
+    <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 pt-8 pb-8 sm:pt-12 sm:pb-12">
+      <SiteHeader />
 
       <main className="flex flex-1 flex-col items-center justify-center gap-8 py-10">
         <div className="flex flex-col items-center gap-2 text-center">
@@ -60,10 +46,17 @@ export default async function HomePage() {
         )}
       </main>
 
-      <footer className="flex items-center justify-center gap-2 pt-6 text-xs text-white/40">
+      <footer className="flex flex-col items-center gap-2 pt-6 text-center text-xs text-white/40 sm:flex-row sm:flex-wrap sm:justify-center">
         <span>{watermark}</span>
-        <span>•</span>
+        <span className="hidden sm:inline">&bull;</span>
         <span>Konten dibuat oleh AI, dipilih dengan rasa.</span>
+        <span className="hidden sm:inline">&bull;</span>
+        <Link
+          href="/admin"
+          className="rounded-full border border-white/10 px-3 py-1 transition hover:bg-white/5 hover:text-white/70"
+        >
+          Admin
+        </Link>
       </footer>
     </div>
   );

@@ -96,3 +96,43 @@ dan **presentasi** (komponen). Validasi input ada di `app/actions.ts` & route cr
 - Tidak ada realtime, tidak ada polling.
 - Query landing dibatasi 7 hari terakhir dan hanya kategori aktif.
 - Cron 2x/hari; tiap kategori 1 panggilan Gemini (4 panggilan/hari).
+
+## 8. Autentikasi Pengguna & Journal
+
+Dua sistem auth terpisah: **admin** (custom, cookie `dm_admin`) dan **pengguna**
+(Supabase Auth via `@supabase/ssr`, cookie Supabase). Login pengguna **hanya
+Google**; registrasi manual tidak ada.
+
+```
+User klik "Masuk dengan Google"
+  -> server action signInWithGoogleAction -> Supabase signInWithOAuth (return URL)
+  -> browser redirect ke Google -> Supabase /auth/v1/callback
+  -> balik ke /auth/callback?code=... -> exchangeCodeForSession (set cookie)
+  -> profil belum punya nickname?
+       -> generateUniqueNickname(deriveNickname(user))  (dari nama/email Google)
+  -> /journal
+
+User buka /journal
+  -> requireUserPage("/journal") -> getCurrentUser (Supabase getUser)
+  -> getTodayJournal + getJournalHistory (RLS: auth.uid() = user_id)
+  -> belum ada entri -> <JournalForm>
+  -> sudah ada       -> <JournalEntryCard> + <AIResponseCard> + kalender
+```
+
+`proxy.ts` (pengganti `middleware` di Next 16) hanya me-refresh sesi Supabase di
+setiap request sebagai optimistic check. Semua otorisasi data tetap dicek di
+server (server action / data layer), bukan hanya di proxy.
+
+## 9. Alur Submit Journal
+
+```
+JournalForm submit -> submitJournalAction (server)
+  1. user dari sesi (bukan dari client)
+  2. validasi mood + 20-500 kata (lib/journal.ts)
+  3. journal_date = dateKey() zona Asia/Jakarta (bukan UTC / CURRENT_DATE)
+  4. bila entri hari ini sudah ada -> tolak
+  5. baca AI key terenkripsi (service role) + model, panggil generateJournalResponse
+  6. insert ke user_journals (RLS check auth.uid() = user_id)
+  7. tangani unique (user_id, journal_date) -> pesan "sudah menulis hari ini"
+```
+

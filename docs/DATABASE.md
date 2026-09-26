@@ -48,11 +48,37 @@ Seed: [`supabase/seed.sql`](../supabase/seed.sql).
 | `value` | text | Rahasia disimpan ciphertext `v1:...`; `watermark` plaintext |
 | `created_at` / `updated_at` | timestamptz | |
 
+### `user_journals` (fitur journal)
+
+| Kolom | Tipe | Catatan |
+| :--- | :--- | :--- |
+| `id` | uuid PK | |
+| `user_id` | uuid FK -> `auth.users(id)` | `on delete cascade` |
+| `journal_date` | date | Diisi aplikasi (zona `Asia/Jakarta`), bukan `CURRENT_DATE` |
+| `mood` | `user_mood_type` | `SAD` / `TIRED` / `NEUTRAL` / `HAPPY` / `EXCITED` |
+| `entry_text` | text | 20-500 kata (divalidasi server) |
+| `ai_response` | text | Balasan Gemini |
+| `created_at` | timestamptz | |
+| Constraint | | `unique (user_id, journal_date)` -> 1 entri/hari |
+
+### `profiles`
+
+| Kolom | Tipe | Catatan |
+| :--- | :--- | :--- |
+| `id` | uuid PK/FK -> `auth.users(id)` | `on delete cascade` |
+| `nickname` | varchar(24) | Diisi user, dipakai AI untuk sapaan |
+| `display_name` | varchar(80) | Diisi otomatis dari Google `full_name`/`name` |
+| `avatar_url` | text | Diisi otomatis dari Google `avatar_url` (hotlink, 0 storage) |
+| `created_at` / `updated_at` | timestamptz | |
+
+Profil dibuat otomatis lewat trigger `on_auth_user_created` -> `public.handle_new_user()`.
+
 ## 2. Index
 
 ```sql
 create index idx_quotes_category_created on public.quotes (category_id, created_at desc);
 create index idx_quotes_created on public.quotes (created_at desc);
+create index idx_user_journals_lookup on public.user_journals (user_id, journal_date desc);
 ```
 
 ## 3. Row Level Security
@@ -63,8 +89,12 @@ create index idx_quotes_created on public.quotes (created_at desc);
 | `quotes` | aktif | `select` untuk `anon` |
 | `admins` | aktif | tanpa policy -> hanya service role |
 | `app_settings` | aktif | tanpa policy -> hanya service role |
+| `user_journals` | aktif | `select`/`insert` untuk `authenticated` bila `auth.uid() = user_id` |
+| `profiles` | aktif | `select`/`insert`/`update` untuk `authenticated` bila `auth.uid() = id` |
 
 ## 4. Cleanup (7 hari)
+
+> `user_journals` **tidak** ikut dibersihkan: entri diary disimpan permanen.
 
 Dijalankan oleh cron `/api/cron/cleanup` (bukan `pg_cron`, agar mudah dipantau).
 Ambang hapus = awal hari (zona `Asia/Jakarta`) dari `today - 6`, sehingga tepat

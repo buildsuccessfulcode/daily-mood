@@ -20,6 +20,29 @@
      `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `service_role key` ->
      `SUPABASE_SERVICE_ROLE_KEY`.
 
+### Autentikasi pengguna (Journal) & Google OAuth
+
+Fitur journal memakai **Supabase Auth** dengan **login Google saja** (registrasi
+manual dihapus). Wajib dikonfigurasi:
+
+1. **URL Configuration** (Authentication → URL Configuration):
+   - `Site URL`: `http://localhost:3000` (ganti dengan URL produksi saat deploy).
+   - `Redirect URLs`: tambahkan
+     `http://localhost:3000/auth/callback` dan
+     `https://<domain-produksi>/auth/callback`.
+2. **Google Provider** (Authentication → Providers → Google):
+   - Aktifkan, lalu isi **Client ID** & **Client Secret** dari
+     [Google Cloud Console](https://console.cloud.google.com/apis/credentials).
+   - Di Google Cloud, buat OAuth 2.0 Client (Web application) dan isi
+     **Authorized redirect URI**:
+     `https://<project-ref>.supabase.co/auth/v1/callback`.
+3. **Email Provider**: tidak diperlukan karena hanya Google. Sebaiknya
+   **matikan** (Authentication → Providers → Email) agar tidak ada signup email
+   yang tidak terpakai.
+
+User yang login pertama kali dengan Google otomatis dibuatkan akun dan nickname
+unik dari nama/email Google; nickname bisa diubah di `/profile`.
+
 ## 3. Environment
 
 Buat `.env.local` dari [`.env.example`](../.env.example):
@@ -93,3 +116,6 @@ curl -H "Authorization: Bearer <CRON_SECRET>" http://localhost:3000/api/cron/cle
 | Generate gagal 400 dari Gemini | Key salah/kuota habis; cek di Google AI Studio. |
 | Cron 401 di Vercel | `CRON_SECRET` beda antara env Vercel dan saat uji lokal. |
 | `permission denied for table ...` | `SUPABASE_SECRET_KEY` belum diisi. |
+| Google login `redirect_uri_mismatch` | Redirect URI Supabase belum ditambahkan di Google Cloud. |
+| Nickname user Google aneh | Otomatis dari nama/email Google. Ubah di `/profile`. |
+| `permission denied for table user_journals` | Jalankan ulang `supabase/schema.sql` (tabel + RLS journal). |

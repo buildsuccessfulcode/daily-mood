@@ -12,6 +12,9 @@ Gemini lewat cron.
 PRD lengkap: `spesifikasi_pengembangan_daily_mood.md` (root). Beberapa detail
 sudah disesuaikan (lihat "Perbedaan dari PRD" di bawah).
 
+Fitur tambahan: **AI Daily Journal** (1 entri/hari, login Supabase Auth, balasan
+Gemini). Konsep awal di `JOURNAL_PRD.md` (root).
+
 ## Stack & Konvensi
 
 - Next.js 16 App Router, React 19, TypeScript strict, Tailwind v4.
@@ -31,6 +34,14 @@ sudah disesuaikan (lihat "Perbedaan dari PRD" di bawah).
    menyimpan `APP_ENCRYPTION_KEY`.
 4. Admin auth: password scrypt + cookie sesi bertanda tangan (HMAC), bukan password env.
 5. Tidak ada demo mode; Supabase wajib.
+6. **Journal** memakai **Supabase Auth** (`@supabase/ssr`) dengan **login Google saja**
+   (registrasi manual dihapus). Route `/journal`, `/login`, `/profile`, dan
+   `/auth/callback`. Admin tetap memakai auth custom lama.
+7. `journal_date` dihitung di app zona `Asia/Jakarta` (`dateKey()`), **bukan**
+   `CURRENT_DATE`/UTC. 1 entri/hari dijaga `unique (user_id, journal_date)`.
+8. **Nickname wajib unik** (case-insensitive). User Google baru dibuatkan nickname
+   otomatis dari nama/email Google (`generateUniqueNickname`) dan bisa diubah di
+   `/profile`. Avatar Google di-hotlink (0 storage).
 
 ## Peta File
 
@@ -39,36 +50,42 @@ app/
   layout.tsx                 root layout (font, metadata)
   globals.css                Tailwind v4 + token warna
   page.tsx                   landing (server): ambil quote harian -> <DailyMood>
-  actions.ts                 server actions (satu-satunya jalur tulis): login/logout,
-                             simpan hapus AI key, atur watermark, CRUD kategori,
-                             generate/cleanup manual, ganti password, seed default
-  admin/
-    login/page.tsx           form login (client)
-    (protected)/layout.tsx   guard requireAdmin
-    (protected)/page.tsx     dashboard admin (server) + widget client
-  api/cron/generate/route.ts route cron generate quote (Bearer CRON_SECRET)
-  api/cron/cleanup/route.ts  route cron hapus quote > 7 hari
+  actions.ts                 server actions admin (satu-satunya jalur tulis admin)
+  auth/actions.ts            server actions auth user (Google sign-in, sign-out)
+  auth/callback/route.ts     exchange code OAuth -> auto nickname unik -> redirect
+  journal/page.tsx           halaman journal (server): guard + entri hari ini + kalender
+  journal/actions.ts         submitJournalAction (Gemini + insert 1/hari)
+  login/page.tsx             halaman login (Google saja)
+  profile/page.tsx           halaman profil (nickname, email, avatar)
+  profile/actions.ts         updateProfileAction
+  admin/                     login + dashboard + quotes (protected)
+  api/cron/*                 route cron generate & cleanup quote
+proxy.ts                     refresh sesi Supabase (pengganti middleware Next 16)
 components/
-  DailyMood.tsx              client: chip hari (7) + switcher kategori + kartu + tombol unduh
-  QuoteCard.tsx              client: render kartu (di-screenshot)
-  Logo.tsx                   komponen logo (public/logo.png)
-  CategoryIcon.tsx           ikon lucide berdasarkan nama
-  admin/AdminDashboard.tsx   client: form AI key, watermark, kategori, aksi manual
-  admin/LoginForm.tsx        client: form login
-hooks/useDownloadQuote.ts    unduh PNG via html-to-image
+  SiteHeader.tsx             nav Quote/Journal + akun/avatar + logout
+  MobileMenu.tsx             menu mobile (hamburger): nav + akun + keluar
+  auth/LoginForm.tsx         tombol Masuk dengan Google (Google-only)
+  journal/JournalForm.tsx    mood picker + textarea + word counter
+  journal/JournalEntryCard.tsx       tampilan entri + lock
+  journal/AIResponseCard.tsx kartu balasan AI
+  journal/MoodCalendar.tsx   30 hari mood
+  journal/ResetCountdown.tsx hitung mundur reset 00:00 WIB
+  profile/Avatar.tsx         avatar Google / inisial
+  profile/ProfileForm.tsx    edit nickname
+  DailyMood.tsx, QuoteCard.tsx, Logo.tsx, CategoryIcon.tsx, admin/*, ui/Toast.tsx
 lib/
-  config.ts                  pembaca env + isSupabaseConfigured
-  constants.ts               kategori default, preset gradient, opsi ikon, retensi, model
-  crypto.ts                  AES-256-GCM encrypt/decrypt (AI key)
-  auth.ts                    scrypt hash/verify, token sesi HMAC, requireAdmin, rate limit
-  gemini.ts                  generateQuote() via @google/genai
-  quotes.ts                  logika murni: dateKey, groupQuotesByDay, pickLatestPerCategory, historyCutoffISO, dayLabel
-  types.ts                   tipe domain
-  utils.ts                   cn()
+  auth-user.ts               getCurrentUser (cache), requireUserPage, safeNextPath
+  journal.ts                 murni: countWords, validateEntry, nextResetWIB
+  journal-data.ts            getTodayJournal, getJournalHistory (RLS)
+  profile-data.ts            getProfile, greetingName, isNicknameTaken,
+                             deriveNickname, generateUniqueNickname
+  config.ts, constants.ts, crypto.ts, auth.ts (admin), gemini.ts, generate.ts,
+  quotes.ts, data.ts, types.ts, utils.ts
   supabase/client.ts         browser anon (baca publik)
   supabase/server.ts         service role + anon server
+  supabase/auth-server.ts    Supabase Auth SSR (cookie)
 supabase/
-  schema.sql                 skema + RLS + index
+  schema.sql                 skema + RLS + index + trigger profil
   seed.sql                   kategori default + admin awal (hash, bukan plaintext)
 docs/                        dokumentasi
 vercel.json                  jadwal cron
@@ -82,6 +99,10 @@ vercel.json                  jadwal cron
 - `admins`: `username` unik, `password_hash` (format `scrypt:N:r:p:saltB64:hashB64`).
 - `app_settings`: key-value; `gemini_api_key` disimpan sebagai ciphertext, `watermark`
   disimpan plaintext dan dibaca server untuk kartu publik.
+- `user_journals`: `user_id` FK `auth.users`, `journal_date` (WIB), `mood` (enum),
+  `entry_text`, `ai_response`, `unique (user_id, journal_date)`; RLS milik sendiri.
+- `profiles`: `id` FK `auth.users`, `nickname` (unik case-insensitive), `display_name`,
+  `avatar_url`; dibuat otomatis oleh trigger `handle_new_user`.
 
 ## Aturan Penting
 
@@ -92,6 +113,9 @@ vercel.json                  jadwal cron
    `SUPABASE_SERVICE_ROLE_KEY`), `APP_ENCRYPTION_KEY`, `ADMIN_SESSION_SECRET`, `CRON_SECRET`.
 5. Perubahan skema disinkronkan ke `supabase/schema.sql` + `docs/DATABASE.md`.
 6. Retensi quote = `QUOTE_RETENTION_DAYS` (7) & riwayat = `HISTORY_DAYS` (7) di `lib/constants.ts`.
+7. Journal user: `userId` **selalu** dari sesi (`getCurrentUser()`), bukan body.
+   `journal_date` dari `dateKey()` (WIB). Nickname unik (case-insensitive).
+   Entri journal disimpan permanen (tidak ikut cron cleanup).
 
 ## Perintah
 

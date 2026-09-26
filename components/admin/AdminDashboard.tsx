@@ -158,7 +158,7 @@ export function AdminDashboard({ overview }: { overview: AdminOverview }) {
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-8">
-      <header className="flex items-center justify-between">
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl font-extrabold tracking-tight">
             Dashboard Admin
@@ -167,7 +167,7 @@ export function AdminDashboard({ overview }: { overview: AdminOverview }) {
             Kelola AI key, kategori, dan konten harian
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Link
             href="/admin/quotes"
             className="flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/70 transition hover:bg-white/10"
@@ -193,7 +193,7 @@ export function AdminDashboard({ overview }: { overview: AdminOverview }) {
           <p className="mb-3 text-xs text-white/60">
             Status:{" "}
             {overview.geminiKeyFilled ? (
-              <span className="font-mono text-emerald-200">
+              <span className="break-all font-mono text-emerald-200">
                 {overview.geminiKeyMasked}
               </span>
             ) : (

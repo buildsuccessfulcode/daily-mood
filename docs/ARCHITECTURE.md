@@ -33,7 +33,7 @@
 - **Baca publik** (kategori + quote) lewat anon key dengan RLS `SELECT`.
 - **Tulis & data sensitif** hanya lewat server (service role). AI key & admin tidak punya
   policy RLS, jadi tidak bisa dibaca anon.
-- **Cron** menulis quote baru lalu menghapus quote lebih tua dari 14 hari.
+- **Cron** menulis quote baru lalu menghapus quote lebih tua dari 7 hari.
 
 ## 2. Alur Quote Harian
 
@@ -41,14 +41,16 @@
 Cron 00:00 WIB -> GET /api/cron/generate
   -> verifikasi Bearer CRON_SECRET
   -> baca gemini_api_key (decrypt AES-256-GCM)
-  -> untuk tiap kategori aktif: Gemini generate 1 quote
+  -> ambil 10 quote terakhir per kategori sebagai daftar "hindari mirip"
+  -> untuk tiap kategori aktif: Gemini generate 1 quote (gaya viral + temperature 1.15)
   -> insert ke quotes (snapshot gradient + icon)
 
 User buka "/"
-  -> server component ambil kategori aktif + quote 14 hari terakhir
-  -> lib/quotes.pickDailyQuote() memilih 1 quote per kategori (deterministik per tanggal)
-  -> <DailyMood> render switcher + <QuoteCard>
-  -> tombol unduh -> html-to-image toPng (pixelRatio 2) -> PNG 3:4 + watermark
+  -> server component ambil kategori aktif + quote 7 hari terakhir (cutoff WIB)
+  -> lib/quotes.groupQuotesByDay() grup per tanggal Asia/Jakarta
+  -> pickLatestPerCategory() pilih quote terbaru tiap kategori per hari
+  -> <DailyMood> render chip hari + tab kategori + <QuoteCard>
+  -> tombol unduh -> html-to-image toPng (pixelRatio 3) -> PNG 3:4 + watermark
 ```
 
 ## 3. Autentikasi Admin
@@ -85,12 +87,12 @@ dan **presentasi** (komponen). Validasi input ada di `app/actions.ts` & route cr
 1. **Server Actions, bukan REST** untuk semua mutasi. Route handler hanya untuk cron.
 2. **Kategori dinamis** agar admin tidak perlu ubah skema untuk mengelola konten.
 3. **Snapshot gradient/icon di quotes** supaya tampilan quote lama stabil walau kategori diubah.
-4. **Retensi 14 hari** supaya DB kecil dan konten tetap segar (0 MB media storage).
-5. **Pemilihan quote deterministik per tanggal** supaya 1 hari = 1 quote stabil, tanpa state.
+4. **Retensi 7 hari** supaya DB kecil dan konten tetap segar (0 MB media storage).
+5. **Pemilihan quote berbasis tanggal** (`created_at` zona Asia/Jakarta) supaya 1 hari = 1 quote terbaru per kategori, dan riwayat 7 hari bisa dilihat ulang.
 6. **Best-effort rate limit** di memori (serverless: per-instance). Cukup untuk mencegah brute force ringan.
 
 ## 7. Batasan Kuota (Free Tier)
 
 - Tidak ada realtime, tidak ada polling.
-- Query landing dibatasi 14 hari terakhir dan hanya kategori aktif.
+- Query landing dibatasi 7 hari terakhir dan hanya kategori aktif.
 - Cron 2x/hari; tiap kategori 1 panggilan Gemini (4 panggilan/hari).

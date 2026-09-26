@@ -2,15 +2,16 @@
 
 Web app quote harian untuk semua: 1 quote per kategori, diunduh sebagai kartu PNG
 3:4 dengan watermark yang bisa diatur admin. Konten diisi otomatis oleh Gemini dan
-dibersihkan setelah 14 hari.
+dibersihkan setelah 7 hari.
 
 ## Fitur
 
 - 4 kategori Gen Z: Sadvibes & HTS, Lucu & Absurd, Manifest & Grind, Real Talk / POV.
+- **Riwayat 7 hari**: pilih tanggal (hari ini s/d 6 hari lalu) + kategori, lalu lihat & unduh.
 - Kartu estetik dengan gradien, ikon, dan **download PNG** (html-to-image) + watermark.
 - **Dashboard admin** (`/admin`): simpan AI key Gemini (terenkripsi AES-256-GCM),
   atur watermark, manage kategori & prompt, generate/cleanup manual, ganti password.
-- **Cron Vercel**: generate harian (00:00 WIB) & cleanup quote > 14 hari (01:00 WIB).
+- **Cron Vercel**: generate harian (00:00 WIB) & cleanup quote > 7 hari (01:00 WIB).
 
 ## Stack
 

@@ -23,6 +23,13 @@ export type QuoteCardData = {
   quote: Quote;
 };
 
+export type DayCard = {
+  dateKey: string;
+  label: string;
+  hasQuotes: boolean;
+  cards: QuoteCardData[];
+};
+
 export type AdminQuote = {
   id: string;
   text: string;

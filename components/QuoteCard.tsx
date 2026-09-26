@@ -41,7 +41,7 @@ export function QuoteCard({ data, dateLabel, watermark, ref }: QuoteCardProps) {
       </div>
 
       <div className="relative z-10 my-auto">
-        <p className="text-[19px] font-semibold leading-relaxed tracking-wide drop-shadow-sm">
+        <p className="whitespace-pre-line text-[19px] font-semibold leading-relaxed tracking-wide drop-shadow-sm">
           &ldquo;{quote.text}&rdquo;
         </p>
       </div>

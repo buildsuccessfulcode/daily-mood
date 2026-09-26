@@ -1,34 +1,46 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Clipboard, Download, Loader2, Quote as QuoteIcon } from "lucide-react";
+import {
+  CalendarDays,
+  Clipboard,
+  Download,
+  Loader2,
+  Quote as QuoteIcon,
+} from "lucide-react";
 import { useDownloadQuote } from "@/hooks/useDownloadQuote";
 import { useToast } from "@/components/ui/Toast";
 import { formatQuoteDate } from "@/lib/quotes";
-import type { QuoteCardData } from "@/lib/types";
+import type { DayCard } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { CategoryIcon } from "./CategoryIcon";
 import { QuoteCard } from "./QuoteCard";
 
-function fileDate(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
 export function DailyMood({
-  cards,
+  days,
   watermark,
 }: {
-  cards: QuoteCardData[];
+  days: DayCard[];
   watermark: string;
 }) {
   const toast = useToast();
-  const [activeId, setActiveId] = useState(cards[0]?.category.id ?? "");
+  const hasAnyCard = days.some((day) => day.cards.length > 0);
+  const [activeDateKey, setActiveDateKey] = useState(
+    () => days.find((day) => day.hasQuotes)?.dateKey ?? days[0]?.dateKey ?? "",
+  );
+  const [activeCategoryId, setActiveCategoryId] = useState(
+    () => days.find((day) => day.hasQuotes)?.cards[0]?.category.id ?? "",
+  );
   const cardRef = useRef<HTMLDivElement>(null);
   const { pending, download } = useDownloadQuote();
 
-  const active = cards.find((card) => card.category.id === activeId) ?? cards[0];
+  const activeDay =
+    days.find((day) => day.dateKey === activeDateKey) ?? days[0];
+  const active =
+    activeDay?.cards.find((card) => card.category.id === activeCategoryId) ??
+    activeDay?.cards[0];
 
-  if (!active) {
+  if (!hasAnyCard || !activeDay || !active) {
     return (
       <div className="flex flex-col items-center gap-3 rounded-3xl border border-white/10 bg-white/5 px-6 py-16 text-center">
         <QuoteIcon className="h-10 w-10 text-indigo-300" />
@@ -41,7 +53,9 @@ export function DailyMood({
     );
   }
 
-  const dateLabel = formatQuoteDate();
+  const dateLabel = formatQuoteDate(
+    new Date(`${activeDay.dateKey}T00:00:00+07:00`),
+  );
 
   const handleCopy = async () => {
     try {
@@ -57,7 +71,7 @@ export function DailyMood({
   const handleDownload = async () => {
     const ok = await download(
       cardRef.current,
-      `daily-mood-${active.category.key.toLowerCase()}-${fileDate()}.png`,
+      `daily-mood-${active.category.key.toLowerCase()}-${activeDay.dateKey}.png`,
     );
     if (ok) {
       toast.success("Gambar berhasil diunduh.");
@@ -67,15 +81,40 @@ export function DailyMood({
   };
 
   return (
-    <div className="flex w-full flex-col items-center gap-6">
+    <div className="flex w-full flex-col items-center gap-5">
       <div className="flex w-full max-w-md items-center gap-2 overflow-x-auto pb-1">
-        {cards.map((card) => {
+        {days.map((day) => {
+          const isActive = day.dateKey === activeDay.dateKey;
+          return (
+            <button
+              key={day.dateKey}
+              type="button"
+              disabled={!day.hasQuotes}
+              onClick={() => setActiveDateKey(day.dateKey)}
+              className={cn(
+                "flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition",
+                isActive
+                  ? "border-indigo-400/40 bg-indigo-500/20 text-white"
+                  : "border-white/10 bg-white/5 text-white/60 hover:bg-white/10",
+                !day.hasQuotes &&
+                  "cursor-not-allowed opacity-40 hover:bg-white/5",
+              )}
+            >
+              <CalendarDays className="h-3 w-3" />
+              {day.label}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="flex w-full max-w-md items-center gap-2 overflow-x-auto pb-1">
+        {activeDay.cards.map((card) => {
           const isActive = card.category.id === active.category.id;
           return (
             <button
               key={card.category.id}
               type="button"
-              onClick={() => setActiveId(card.category.id)}
+              onClick={() => setActiveCategoryId(card.category.id)}
               className={cn(
                 "flex shrink-0 items-center gap-2 rounded-full border px-3.5 py-2 text-xs font-semibold transition",
                 isActive
@@ -83,7 +122,10 @@ export function DailyMood({
                   : "border-white/15 bg-white/5 text-white/70 hover:bg-white/10",
               )}
             >
-              <CategoryIcon name={card.category.iconName} className="h-3.5 w-3.5" />
+              <CategoryIcon
+                name={card.category.iconName}
+                className="h-3.5 w-3.5"
+              />
               {card.category.label}
             </button>
           );

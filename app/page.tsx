@@ -3,14 +3,14 @@ import { Sparkles } from "lucide-react";
 import { DailyMood } from "@/components/DailyMood";
 import { Logo } from "@/components/Logo";
 import { isSupabaseConfigured } from "@/lib/config";
-import { getDailyCards, getWatermark } from "@/lib/data";
+import { getDailyMood, getWatermark } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const configured = isSupabaseConfigured();
-  const [cards, watermark] = await Promise.all([
-    configured ? getDailyCards() : Promise.resolve([]),
+  const [days, watermark] = await Promise.all([
+    configured ? getDailyMood() : Promise.resolve([]),
     getWatermark(),
   ]);
 
@@ -47,7 +47,7 @@ export default async function HomePage() {
         </div>
 
         {configured ? (
-          <DailyMood cards={cards} watermark={watermark} />
+          <DailyMood days={days} watermark={watermark} />
         ) : (
           <div className="w-full max-w-md rounded-3xl border border-amber-400/30 bg-amber-400/10 p-6 text-sm text-amber-100">
             <p className="mb-2 font-bold">Supabase belum dikonfigurasi</p>

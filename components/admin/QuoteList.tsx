@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Clipboard, Quote as QuoteIcon, Search } from "lucide-react";
 import { CategoryIcon } from "@/components/CategoryIcon";
 import { useToast } from "@/components/ui/Toast";
-import { gradientClass } from "@/lib/constants";
+import { QUOTE_RETENTION_DAYS, gradientClass } from "@/lib/constants";
 import type { AdminQuote } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -73,7 +73,7 @@ export function QuoteList({ quotes }: { quotes: AdminQuote[] }) {
               Daftar Quote
             </h1>
             <p className="text-xs text-white/50">
-              {quotes.length} quote tersimpan (14 hari terakhir)
+              {quotes.length} quote tersimpan ({QUOTE_RETENTION_DAYS} hari terakhir)
             </p>
           </div>
         </div>
@@ -129,7 +129,7 @@ export function QuoteList({ quotes }: { quotes: AdminQuote[] }) {
                 <CategoryIcon name={quote.categoryIcon} className="h-4 w-4" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm leading-relaxed text-white/90">
+                <p className="whitespace-pre-line text-sm leading-relaxed text-white/90">
                   &ldquo;{quote.text}&rdquo;
                 </p>
                 <p className="mt-2 text-[11px] text-white/50">

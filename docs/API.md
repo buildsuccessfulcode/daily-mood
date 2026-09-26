@@ -20,7 +20,7 @@ type ActionResult =
 | `saveCategoryAction` | `id?, key, label, iconName, themeGradient, prompt, sortOrder, isActive` | admin | insert/update kategori |
 | `deleteCategoryAction` | `id` | admin | hapus kategori (quote ikut terhapus) |
 | `generateNowAction` | - | admin | generate 1 quote untuk tiap kategori aktif |
-| `cleanupNowAction` | - | admin | hapus quote > 14 hari |
+| `cleanupNowAction` | - | admin | hapus quote > 7 hari |
 | `changePasswordAction` | `currentPassword, newPassword` | admin | verifikasi + ganti hash |
 | `seedDefaultsAction` | - | admin | pastikan 4 kategori default ada |
 
@@ -48,7 +48,7 @@ Respon: { success, generated: [{ category, ok }] }
 Header wajib: `Authorization: Bearer <CRON_SECRET>`.
 
 ```
-DELETE quotes WHERE created_at < NOW() - INTERVAL '14 days'
+DELETE quotes WHERE created_at < awal hari (Asia/Jakarta) dari today - 6
 Respon: { success, deleted_count }
 ```
 
@@ -77,14 +77,20 @@ type Quote = {
   createdAt: string;
 };
 
-type QuoteCard = { category: Category; quote: Quote };
+type DayCard = {
+  dateKey: string;   // YYYY-MM-DD (Asia/Jakarta)
+  label: string;     // 'Hari ini' | 'Kemarin' | 'Sen, 22 Sep'
+  hasQuotes: boolean;
+  cards: QuoteCardData[];
+};
 
 type Admin = { id: string; username: string; lastLoginAt: string | null };
 ```
 
 ## 4. Konstanta (`lib/constants.ts`)
 
-- `QUOTE_RETENTION_DAYS = 14`
+- `QUOTE_RETENTION_DAYS = 7`
+- `HISTORY_DAYS = 7`
 - `GEMINI_MODEL = 'gemini-2.5-flash'`
 - `DEFAULT_CATEGORIES` (4 sesuai PRD)
 - `GRADIENT_PRESETS`, `ICON_OPTIONS` (untuk form admin)
@@ -92,6 +98,9 @@ type Admin = { id: string; username: string; lastLoginAt: string | null };
 
 ## 5. Fungsi Murni (`lib/quotes.ts`)
 
-- `groupByCategory(quotes)` -> `Map<categoryId, Quote[]>`
-- `pickDailyQuote(quotes, date)` -> pilih 1 quote deterministik: index `hariKe-N % jumlah`.
-- `isQuoteNew(date, quote, now)` -> cek masih dalam retensi (untuk tampilan).
+- `dateKey(date)` -> `YYYY-MM-DD` zona `Asia/Jakarta`.
+- `shiftDateKey(key, days)` -> geser tanggal.
+- `groupQuotesByDay(quotes)` -> `Map<dateKey, Quote[]>`.
+- `pickLatestPerCategory(quotes)` -> `Map<categoryId, Quote>` (quote terbaru hari itu).
+- `historyCutoffISO()` -> ISO awal hari (WIB) dari `today - (HISTORY_DAYS - 1)`.
+- `dayLabel(key, todayKey)` -> label hari untuk chip.

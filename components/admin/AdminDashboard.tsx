@@ -37,6 +37,7 @@ import {
   GEMINI_MODELS,
   GRADIENT_PRESETS,
   ICON_OPTIONS,
+  QUOTE_RETENTION_DAYS,
   geminiModelLabel,
   gradientClass,
 } from "@/lib/constants";
@@ -303,7 +304,7 @@ export function AdminDashboard({ overview }: { overview: AdminOverview }) {
             <h2 className="text-sm font-bold">Aksi Cepat</h2>
           </div>
           <p className="mb-3 text-xs text-white/60">
-            {overview.totalQuotes} quote aktif (14 hari terakhir).
+            {overview.totalQuotes} quote aktif ({QUOTE_RETENTION_DAYS} hari terakhir).
           </p>
           <div className="flex flex-wrap gap-2">
             <button

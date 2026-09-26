@@ -4,14 +4,26 @@ import {
   DEFAULT_WATERMARK,
   GEMINI_MODEL,
   GEMINI_MODEL_SETTING_KEY,
-  QUOTE_RETENTION_DAYS,
+  HISTORY_DAYS,
   WATERMARK_SETTING_KEY,
   isValidGeminiModel,
 } from "./constants";
 import { decryptSecret, maskSecret } from "./crypto";
-import { groupByCategory, pickDailyQuote } from "./quotes";
+import {
+  dateKey,
+  dayLabel,
+  groupQuotesByDay,
+  historyCutoffISO,
+  pickLatestPerCategory,
+  shiftDateKey,
+} from "./quotes";
 import { createAnonServerClient, createServiceClient } from "./supabase/server";
-import type { AdminQuote, Category, Quote, QuoteCardData } from "./types";
+import type {
+  AdminQuote,
+  Category,
+  DayCard,
+  Quote,
+} from "./types";
 
 type CategoryRow = {
   id: string;
@@ -58,9 +70,7 @@ export function mapQuote(row: QuoteRow): Quote {
 }
 
 function retentionThreshold(): string {
-  return new Date(
-    Date.now() - QUOTE_RETENTION_DAYS * 86_400_000,
-  ).toISOString();
+  return historyCutoffISO();
 }
 
 function fallbackQuote(category: Category): Quote {
@@ -75,7 +85,7 @@ function fallbackQuote(category: Category): Quote {
   };
 }
 
-export async function getDailyCards(): Promise<QuoteCardData[]> {
+export async function getDailyMood(): Promise<DayCard[]> {
   if (!isSupabaseConfigured()) return [];
   const supabase = createAnonServerClient();
   const [categoriesResult, quotesResult] = await Promise.all([
@@ -95,12 +105,27 @@ export async function getDailyCards(): Promise<QuoteCardData[]> {
     mapCategory,
   );
   const quotes = ((quotesResult.data ?? []) as QuoteRow[]).map(mapQuote);
-  const grouped = groupByCategory(quotes);
+  const byDay = groupQuotesByDay(quotes);
+  const todayKey = dateKey();
 
-  return categories.map((category) => {
-    const picked = pickDailyQuote(grouped.get(category.id) ?? []);
-    return { category, quote: picked ?? fallbackQuote(category) };
-  });
+  const days: DayCard[] = [];
+  for (let offset = 0; offset < HISTORY_DAYS; offset += 1) {
+    const key = shiftDateKey(todayKey, -offset);
+    const dayQuotes = byDay.get(key) ?? [];
+    const latest = pickLatestPerCategory(dayQuotes);
+    const cards = categories.map((category) => {
+      const picked = latest.get(category.id);
+      return { category, quote: picked ?? fallbackQuote(category) };
+    });
+    days.push({
+      dateKey: key,
+      label: dayLabel(key, todayKey),
+      hasQuotes: dayQuotes.length > 0,
+      cards,
+    });
+  }
+
+  return days;
 }
 
 type AdminQuoteRow = {

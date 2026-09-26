@@ -64,12 +64,16 @@ create index idx_quotes_created on public.quotes (created_at desc);
 | `admins` | aktif | tanpa policy -> hanya service role |
 | `app_settings` | aktif | tanpa policy -> hanya service role |
 
-## 4. Cleanup (14 hari)
+## 4. Cleanup (7 hari)
 
-Dijalankan oleh cron `/api/cron/cleanup` (bukan `pg_cron`, agar mudah dipantau):
+Dijalankan oleh cron `/api/cron/cleanup` (bukan `pg_cron`, agar mudah dipantau).
+Ambang hapus = awal hari (zona `Asia/Jakarta`) dari `today - 6`, sehingga tepat
+7 hari kalender (hari ini + 6 hari lalu) tetap tersimpan untuk riwayat.
 
 ```sql
-DELETE FROM public.quotes WHERE created_at < NOW() - INTERVAL '14 days';
+DELETE FROM public.quotes
+WHERE created_at < date_trunc('day', now() at time zone 'Asia/Jakarta')
+  - interval '6 days';
 ```
 
 Alternatif opsional via Supabase `pg_cron`:
@@ -78,7 +82,9 @@ Alternatif opsional via Supabase `pg_cron`:
 select cron.schedule(
   'cleanup-old-quotes',
   '0 1 * * *',
-  $$ delete from public.quotes where created_at < now() - interval '14 days' $$
+  $$ delete from public.quotes
+     where created_at < date_trunc('day', now() at time zone 'Asia/Jakarta')
+       - interval '6 days' $$
 );
 ```
 

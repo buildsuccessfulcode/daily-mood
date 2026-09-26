@@ -17,7 +17,7 @@ create table if not exists public.categories (
     updated_at timestamptz not null default now()
 );
 
--- 2. Quote harian (dibuat cron, disimpan maksimal 14 hari)
+-- 2. Quote harian (dibuat cron, disimpan maksimal 7 hari)
 create table if not exists public.quotes (
     id uuid primary key default gen_random_uuid(),
     category_id uuid not null references public.categories(id) on delete cascade,

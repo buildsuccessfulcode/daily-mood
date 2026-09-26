@@ -26,7 +26,7 @@ sudah disesuaikan (lihat "Perbedaan dari PRD" di bawah).
 ## Perbedaan dari PRD (sengaja)
 
 1. Kategori **dinamis** (tabel `categories`), bukan enum tetap, agar admin bisa CRUD.
-2. Retensi cleanup **14 hari** (PRD menulis 7), sesuai permintaan.
+2. Retensi cleanup **7 hari** (sesuai PRD), ditampilkan sebagai riwayat 7 hari.
 3. AI key **disimpan terenkripsi** di DB (AES-256-GCM), bukan hanya env. Env hanya
    menyimpan `APP_ENCRYPTION_KEY`.
 4. Admin auth: password scrypt + cookie sesi bertanda tangan (HMAC), bukan password env.
@@ -47,9 +47,9 @@ app/
     (protected)/layout.tsx   guard requireAdmin
     (protected)/page.tsx     dashboard admin (server) + widget client
   api/cron/generate/route.ts route cron generate quote (Bearer CRON_SECRET)
-  api/cron/cleanup/route.ts  route cron hapus quote > 14 hari
+  api/cron/cleanup/route.ts  route cron hapus quote > 7 hari
 components/
-  DailyMood.tsx              client: switcher kategori + kartu + tombol unduh
+  DailyMood.tsx              client: chip hari (7) + switcher kategori + kartu + tombol unduh
   QuoteCard.tsx              client: render kartu (di-screenshot)
   Logo.tsx                   komponen logo (public/logo.png)
   CategoryIcon.tsx           ikon lucide berdasarkan nama
@@ -62,7 +62,7 @@ lib/
   crypto.ts                  AES-256-GCM encrypt/decrypt (AI key)
   auth.ts                    scrypt hash/verify, token sesi HMAC, requireAdmin, rate limit
   gemini.ts                  generateQuote() via @google/genai
-  quotes.ts                  logika murni: pickDailyQuote, groupByCategory
+  quotes.ts                  logika murni: dateKey, groupQuotesByDay, pickLatestPerCategory, historyCutoffISO, dayLabel
   types.ts                   tipe domain
   utils.ts                   cn()
   supabase/client.ts         browser anon (baca publik)
@@ -91,7 +91,7 @@ vercel.json                  jadwal cron
 4. Jangan commit `.env.local`. Rahasia: `SUPABASE_SECRET_KEY` (fallback
    `SUPABASE_SERVICE_ROLE_KEY`), `APP_ENCRYPTION_KEY`, `ADMIN_SESSION_SECRET`, `CRON_SECRET`.
 5. Perubahan skema disinkronkan ke `supabase/schema.sql` + `docs/DATABASE.md`.
-6. Retensi quote = `QUOTE_RETENTION_DAYS` (14) di `lib/constants.ts`.
+6. Retensi quote = `QUOTE_RETENTION_DAYS` (7) & riwayat = `HISTORY_DAYS` (7) di `lib/constants.ts`.
 
 ## Perintah
 

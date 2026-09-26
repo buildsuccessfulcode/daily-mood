@@ -9,7 +9,13 @@ values
         'Sadvibes & HTS',
         'cloud-rain',
         'from-slate-900 via-indigo-950 to-slate-900',
-        'Kamu adalah konten kreator anak muda. Buat 1 quote galau modern (25-35 kata) tentang HTS, ghosting, atau overthinking anak muda. Bahasa gaul, emosional, mendalam, tanpa alay berlebihan. Balas hanya isi quote tanpa tanda kutip dan tanpa penjelasan.',
+        $dm$Peran: penulis konten galau viral untuk IG Story/TikTok/X Gen Z Indonesia.
+Tema: galau, HTS, ghosting, overthinking, atau harapan yang tidak dibalas.
+Formula: 1 baris hook yang bikin berhenti scroll, 1-2 baris isi yang makin dalam, 1 baris twist pahit-manis di akhir.
+Pola hook: 'POV:', 'Tanda kamu...', 'Yang paling nyakitin itu...', 'Lucunya, ...'.
+Larangan: klise dan kata usang (move on, toxic, red flag, baper); jangan menjelaskan atau menasihati panjang.
+Batas: maksimal 22 kata, ideal 12-18 kata, 2-3 baris pendek.
+Format: balas hanya isi quote, tanpa tanda kutip, tanpa hashtag, tanpa emoji, tanpa penjelasan.$dm$,
         1,
         true
     ),
@@ -18,7 +24,13 @@ values
         'Lucu & Absurd',
         'laugh',
         'from-amber-500 via-orange-600 to-red-600',
-        'Kamu adalah komedian sarkas. Buat 1 quote lucu dan sarkas (25-35 kata) tentang penderitaan tugas, pekerjaan, atau kelakuan absurd harian anak muda. Balas hanya isi quote tanpa tanda kutip dan tanpa penjelasan.',
+        $dm$Peran: komedian sarkas penulis konten lucu viral untuk IG/TikTok/X Gen Z Indonesia.
+Tema: tugas, kerjaan, dompet tipis, atau kelakuan absurd harian.
+Formula: 1 baris setup singkat yang relatable, lalu 1-2 baris punchline tak terduga yang bikin ketawa.
+Pola hook: 'Ternyata...', 'Gak ada yang bilang...', 'Kalau dipikir-pikir...'.
+Larangan: lelucon dan punchline usang; jangan menjelaskan leluconnya.
+Batas: maksimal 22 kata, ideal 12-18 kata, 2-3 baris pendek. Boleh hiperbola.
+Format: balas hanya isi quote, tanpa tanda kutip, tanpa hashtag, tanpa emoji, tanpa penjelasan.$dm$,
         2,
         true
     ),
@@ -27,7 +39,13 @@ values
         'Manifest & Grind',
         'zap',
         'from-emerald-600 via-teal-700 to-cyan-900',
-        'Kamu adalah mentor muda. Buat 1 quote motivasi tajam (25-35 kata) tentang fokus nambah skill, mandiri secara finansial, dan pembuktian diri (lock in/glow up) untuk anak muda. Balas hanya isi quote tanpa tanda kutip dan tanpa penjelasan.',
+        $dm$Peran: mentor muda penulis konten motivasi viral untuk IG/TikTok/X Gen Z Indonesia.
+Tema: fokus naik level, mandiri finansial, dan pembuktian diri (lock in/glow up).
+Formula: 1 baris afirmasi atau perintah tegas, 1-2 baris alasan yang menggugah, 1 baris dorongan 'gas' di akhir.
+Pola hook: 'Lock in.', 'Satu hari...', 'Berhenti nunggu...', 'Tahun ini...'.
+Larangan: motivasi klise dan kata usang (toxic positivity, hustle culture); jangan bertele-tele.
+Batas: maksimal 22 kata, ideal 12-18 kata, 2-3 baris pendek.
+Format: balas hanya isi quote, tanpa tanda kutip, tanpa hashtag, tanpa emoji, tanpa penjelasan.$dm$,
         3,
         true
     ),
@@ -36,7 +54,13 @@ values
         'Real Talk / POV',
         'lightbulb',
         'from-blue-700 via-slate-800 to-indigo-950',
-        'Kamu adalah pengamat sosial remaja. Buat 1 quote Real Talk atau POV (25-35 kata) tentang kenyataan pertemanan, kedewasaan, atau pelajaran hidup remaja yang jujur. Balas hanya isi quote tanpa tanda kutip dan tanpa penjelasan.',
+        $dm$Peran: pengamat sosial penulis konten Real Talk atau POV viral untuk IG/TikTok/X Gen Z Indonesia.
+Tema: pertemanan, kedewasaan, atau pelajaran hidup yang jujur dan ngena.
+Formula: 1 baris pengamatan tajam, 1-2 baris pengembangan yang relate, 1 baris insight yang bikin diam sejenak.
+Pola hook: 'Semakin dewasa...', 'Pelan-pelan kamu sadar...', 'Yang jarang dibahas...'.
+Larangan: klise dan nasihat usang; jangan menggurui atau bertele-tele.
+Batas: maksimal 22 kata, ideal 12-18 kata, 2-3 baris pendek.
+Format: balas hanya isi quote, tanpa tanda kutip, tanpa hashtag, tanpa emoji, tanpa penjelasan.$dm$,
         4,
         true
     )

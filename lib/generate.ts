@@ -1,11 +1,11 @@
 import {
   GEMINI_MODEL,
   GEMINI_MODEL_SETTING_KEY,
-  QUOTE_RETENTION_DAYS,
   isValidGeminiModel,
 } from "./constants";
 import { decryptSecret } from "./crypto";
 import { generateQuote } from "./gemini";
+import { historyCutoffISO } from "./quotes";
 import { createServiceClient } from "./supabase/server";
 import type { GenerateResult } from "./types";
 
@@ -16,6 +16,8 @@ type CategoryRow = {
   theme_gradient: string;
   icon_name: string;
 };
+
+const AVOID_RECENT_LIMIT = 20;
 
 export async function getGeminiApiKey(): Promise<string | null> {
   const supabase = createServiceClient();
@@ -60,7 +62,14 @@ export async function generateDailyQuotes(
   const results: GenerateResult[] = [];
   for (const row of (data ?? []) as CategoryRow[]) {
     try {
-      const text = await generateQuote(apiKey, row.prompt, model);
+      const { data: recent } = await supabase
+        .from("quotes")
+        .select("text")
+        .eq("category_id", row.id)
+        .order("created_at", { ascending: false })
+        .limit(AVOID_RECENT_LIMIT);
+      const avoid = (recent ?? []).map((item: { text: string }) => item.text);
+      const text = await generateQuote(apiKey, row.prompt, model, { avoid });
       const { error: insertError } = await supabase.from("quotes").insert({
         category_id: row.id,
         text,
@@ -85,9 +94,7 @@ export async function generateDailyQuotes(
 
 export async function cleanupOldQuotes(): Promise<number> {
   const supabase = createServiceClient();
-  const threshold = new Date(
-    Date.now() - QUOTE_RETENTION_DAYS * 86_400_000,
-  ).toISOString();
+  const threshold = historyCutoffISO();
   const { count, error } = await supabase
     .from("quotes")
     .delete({ count: "exact" })

@@ -5,7 +5,8 @@ export const WATERMARK_SETTING_KEY = "watermark";
 export const ADMIN_COOKIE = "dm_admin";
 export const ADMIN_SESSION_MAX_AGE = 60 * 60 * 12;
 
-export const QUOTE_RETENTION_DAYS = 14;
+export const QUOTE_RETENTION_DAYS = 7;
+export const HISTORY_DAYS = 7;
 export const GEMINI_MODEL = "gemini-2.5-flash";
 export const GEMINI_MODEL_SETTING_KEY = "gemini_model";
 
@@ -46,7 +47,13 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
     iconName: "cloud-rain",
     themeGradient: "from-slate-900 via-indigo-950 to-slate-900",
     prompt:
-      "Kamu adalah konten kreator anak muda. Buat 1 quote galau modern (25-35 kata) tentang HTS, ghosting, atau overthinking anak muda. Bahasa gaul, emosional, mendalam, tanpa alay berlebihan. Balas hanya isi quote tanpa tanda kutip dan tanpa penjelasan.",
+      "Peran: penulis konten galau viral untuk IG Story/TikTok/X Gen Z Indonesia.\n" +
+      "Tema: galau, HTS, ghosting, overthinking, atau harapan yang tidak dibalas.\n" +
+      "Formula: 1 baris hook yang bikin berhenti scroll, 1-2 baris isi yang makin dalam, 1 baris twist pahit-manis di akhir.\n" +
+      "Pola hook: 'POV:', 'Tanda kamu...', 'Yang paling nyakitin itu...', 'Lucunya, ...'.\n" +
+      "Larangan: klise dan kata usang (move on, toxic, red flag, baper); jangan menjelaskan atau menasihati panjang.\n" +
+      "Batas: maksimal 22 kata, ideal 12-18 kata, 2-3 baris pendek.\n" +
+      "Format: balas hanya isi quote, tanpa tanda kutip, tanpa hashtag, tanpa emoji, tanpa penjelasan.",
     sortOrder: 1,
   },
   {
@@ -55,7 +62,13 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
     iconName: "laugh",
     themeGradient: "from-amber-500 via-orange-600 to-red-600",
     prompt:
-      "Kamu adalah komedian sarkas. Buat 1 quote lucu dan sarkas (25-35 kata) tentang penderitaan tugas, pekerjaan, atau kelakuan absurd harian anak muda. Balas hanya isi quote tanpa tanda kutip dan tanpa penjelasan.",
+      "Peran: komedian sarkas penulis konten lucu viral untuk IG/TikTok/X Gen Z Indonesia.\n" +
+      "Tema: tugas, kerjaan, dompet tipis, atau kelakuan absurd harian.\n" +
+      "Formula: 1 baris setup singkat yang relatable, lalu 1-2 baris punchline tak terduga yang bikin ketawa.\n" +
+      "Pola hook: 'Ternyata...', 'Gak ada yang bilang...', 'Kalau dipikir-pikir...'.\n" +
+      "Larangan: lelucon dan punchline usang; jangan menjelaskan leluconnya.\n" +
+      "Batas: maksimal 22 kata, ideal 12-18 kata, 2-3 baris pendek. Boleh hiperbola.\n" +
+      "Format: balas hanya isi quote, tanpa tanda kutip, tanpa hashtag, tanpa emoji, tanpa penjelasan.",
     sortOrder: 2,
   },
   {
@@ -64,7 +77,13 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
     iconName: "zap",
     themeGradient: "from-emerald-600 via-teal-700 to-cyan-900",
     prompt:
-      "Kamu adalah mentor muda. Buat 1 quote motivasi tajam (25-35 kata) tentang fokus nambah skill, mandiri secara finansial, dan pembuktian diri (lock in/glow up) untuk anak muda. Balas hanya isi quote tanpa tanda kutip dan tanpa penjelasan.",
+      "Peran: mentor muda penulis konten motivasi viral untuk IG/TikTok/X Gen Z Indonesia.\n" +
+      "Tema: fokus naik level, mandiri finansial, dan pembuktian diri (lock in/glow up).\n" +
+      "Formula: 1 baris afirmasi atau perintah tegas, 1-2 baris alasan yang menggugah, 1 baris dorongan 'gas' di akhir.\n" +
+      "Pola hook: 'Lock in.', 'Satu hari...', 'Berhenti nunggu...', 'Tahun ini...'.\n" +
+      "Larangan: motivasi klise dan kata usang (toxic positivity, hustle culture); jangan bertele-tele.\n" +
+      "Batas: maksimal 22 kata, ideal 12-18 kata, 2-3 baris pendek.\n" +
+      "Format: balas hanya isi quote, tanpa tanda kutip, tanpa hashtag, tanpa emoji, tanpa penjelasan.",
     sortOrder: 3,
   },
   {
@@ -73,7 +92,13 @@ export const DEFAULT_CATEGORIES: CategorySeed[] = [
     iconName: "lightbulb",
     themeGradient: "from-blue-700 via-slate-800 to-indigo-950",
     prompt:
-      "Kamu adalah pengamat sosial remaja. Buat 1 quote Real Talk atau POV (25-35 kata) tentang kenyataan pertemanan, kedewasaan, atau pelajaran hidup remaja yang jujur. Balas hanya isi quote tanpa tanda kutip dan tanpa penjelasan.",
+      "Peran: pengamat sosial penulis konten Real Talk atau POV viral untuk IG/TikTok/X Gen Z Indonesia.\n" +
+      "Tema: pertemanan, kedewasaan, atau pelajaran hidup yang jujur dan ngena.\n" +
+      "Formula: 1 baris pengamatan tajam, 1-2 baris pengembangan yang relate, 1 baris insight yang bikin diam sejenak.\n" +
+      "Pola hook: 'Semakin dewasa...', 'Pelan-pelan kamu sadar...', 'Yang jarang dibahas...'.\n" +
+      "Larangan: klise dan nasihat usang; jangan menggurui atau bertele-tele.\n" +
+      "Batas: maksimal 22 kata, ideal 12-18 kata, 2-3 baris pendek.\n" +
+      "Format: balas hanya isi quote, tanpa tanda kutip, tanpa hashtag, tanpa emoji, tanpa penjelasan.",
     sortOrder: 4,
   },
 ];

@@ -6,6 +6,28 @@ const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 504]);
 const MAX_ATTEMPTS = 3;
 const RETRY_DELAYS_MS = [800, 2000];
 
+const VIRAL_SYSTEM_INSTRUCTION =
+  "Kamu copywriter konten viral media sosial Indonesia (Instagram, TikTok, X) yang paham selera Gen Z. " +
+  "Hasilkan quote orisinal, singkat, berdampak, dan terasa relate. " +
+  "Tulis dengan bahasa gaul natural dan tata bahasa Indonesia yang benar. " +
+  "Pecah quote menjadi 2-3 baris pendek dengan baris baru di antara baris. " +
+  "Pakai sapaan langsung 'kamu' atau 'aku' bila cocok. " +
+  "Hindari klise, kata usang (move on, toxic, red flag, baper), dan jangan mengulang ide atau struktur kalimat dari daftar larangan. " +
+  "Keluarkan hanya teks quote final tanpa penjelasan, tanpa tanda kutip, tanpa hashtag, tanpa emoji, dan tanpa label.";
+
+export type GenerateQuoteOptions = {
+  avoid?: string[];
+};
+
+function buildContents(prompt: string, avoid?: string[]): string {
+  const blocked = (avoid ?? [])
+    .map((text) => text.trim())
+    .filter((text) => text.length > 0);
+  if (blocked.length === 0) return prompt;
+  const list = blocked.map((text) => `- ${text}`).join("\n");
+  return `${prompt}\n\nVariasikan jenis pembuka; jangan mengulang pola hook yang sama dengan quote berikut:\n${list}`;
+}
+
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -53,15 +75,22 @@ export async function generateQuote(
   apiKey: string,
   prompt: string,
   model: string = GEMINI_MODEL,
+  options: GenerateQuoteOptions = {},
 ): Promise<string> {
   const ai = new GoogleGenAI({ apiKey });
+  const contents = buildContents(prompt, options.avoid);
   let lastError: unknown;
 
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
     try {
       const response = await ai.models.generateContent({
         model,
-        contents: prompt,
+        contents,
+        config: {
+          systemInstruction: VIRAL_SYSTEM_INSTRUCTION,
+          temperature: 1.0,
+          topP: 0.95,
+        },
       });
       const text = (response.text ?? "")
         .trim()

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   CalendarDays,
   Clipboard,
@@ -15,6 +15,89 @@ import type { DayCard } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { CategoryIcon } from "./CategoryIcon";
 import { QuoteCard } from "./QuoteCard";
+
+function ScrollRow({ children }: { children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const handleWheel = (event: WheelEvent) => {
+      if (el.scrollWidth <= el.clientWidth) return;
+      const delta = event.deltaY !== 0 ? event.deltaY : event.deltaX;
+      if (delta === 0) return;
+      const atStart = el.scrollLeft <= 0 && delta < 0;
+      const atEnd =
+        el.scrollLeft + el.clientWidth >= el.scrollWidth - 1 && delta > 0;
+      if (atStart || atEnd) return;
+      event.preventDefault();
+      el.scrollLeft += delta;
+    };
+
+    let dragging = false;
+    let moved = false;
+    let startX = 0;
+    let startLeft = 0;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (event.pointerType !== "mouse" || event.button !== 0) return;
+      if (el.scrollWidth <= el.clientWidth) return;
+      dragging = true;
+      moved = false;
+      startX = event.clientX;
+      startLeft = el.scrollLeft;
+      el.style.cursor = "grabbing";
+      el.style.userSelect = "none";
+      el.setPointerCapture(event.pointerId);
+    };
+
+    const handlePointerMove = (event: PointerEvent) => {
+      if (!dragging) return;
+      const dx = event.clientX - startX;
+      if (Math.abs(dx) > 4) moved = true;
+      el.scrollLeft = startLeft - dx;
+    };
+
+    const endDrag = () => {
+      if (!dragging) return;
+      dragging = false;
+      el.style.cursor = "";
+      el.style.userSelect = "";
+    };
+
+    const handleClickCapture = (event: MouseEvent) => {
+      if (!moved) return;
+      event.preventDefault();
+      event.stopPropagation();
+      moved = false;
+    };
+
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    el.addEventListener("pointerdown", handlePointerDown);
+    el.addEventListener("pointermove", handlePointerMove);
+    el.addEventListener("pointerup", endDrag);
+    el.addEventListener("pointercancel", endDrag);
+    el.addEventListener("click", handleClickCapture, true);
+    return () => {
+      el.removeEventListener("wheel", handleWheel);
+      el.removeEventListener("pointerdown", handlePointerDown);
+      el.removeEventListener("pointermove", handlePointerMove);
+      el.removeEventListener("pointerup", endDrag);
+      el.removeEventListener("pointercancel", endDrag);
+      el.removeEventListener("click", handleClickCapture, true);
+    };
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className="no-scrollbar flex w-full max-w-md snap-x items-center gap-2 overflow-x-auto pb-1 sm:max-w-xl"
+    >
+      {children}
+    </div>
+  );
+}
 
 export function DailyMood({
   days,
@@ -82,7 +165,7 @@ export function DailyMood({
 
   return (
     <div className="flex w-full flex-col items-center gap-5 sm:gap-6">
-      <div className="no-scrollbar flex w-full max-w-md snap-x items-center gap-2 overflow-x-auto pb-1 sm:max-w-xl">
+      <ScrollRow>
         {days.map((day) => {
           const isActive = day.dateKey === activeDay.dateKey;
           return (
@@ -105,9 +188,9 @@ export function DailyMood({
             </button>
           );
         })}
-      </div>
+      </ScrollRow>
 
-      <div className="no-scrollbar flex w-full max-w-md snap-x items-center gap-2 overflow-x-auto pb-1 sm:max-w-xl">
+      <ScrollRow>
         {activeDay.cards.map((card) => {
           const isActive = card.category.id === active.category.id;
           return (
@@ -130,7 +213,7 @@ export function DailyMood({
             </button>
           );
         })}
-      </div>
+      </ScrollRow>
 
       <div className="flex w-full justify-center">
         <div className="relative h-[326px] w-[245px] min-[320px]:h-[375px] min-[320px]:w-[281px] min-[360px]:h-[432px] min-[360px]:w-[324px] min-[400px]:h-[480px] min-[400px]:w-[360px] min-[1024px]:h-[528px] min-[1024px]:w-[396px]">

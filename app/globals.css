@@ -47,6 +47,28 @@ a {
   display: none;
 }
 
+@media (pointer: fine) {
+  .no-scrollbar {
+    -ms-overflow-style: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: block;
+    height: 6px;
+  }
+
+  .no-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .no-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 9999px;
+  }
+}
+
 @media (max-width: 640px) {
   input:not([type="checkbox"]):not([type="radio"]),
   select,

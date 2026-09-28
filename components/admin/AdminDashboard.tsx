@@ -4,7 +4,9 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  BookOpen,
   Droplet,
+  Heart,
   KeyRound,
   List,
   Loader2,
@@ -16,6 +18,7 @@ import {
   Sparkles,
   Trash,
   Trash2,
+  Users,
 } from "lucide-react";
 import {
   changePasswordAction,
@@ -37,6 +40,7 @@ import {
   GEMINI_MODELS,
   GRADIENT_PRESETS,
   ICON_OPTIONS,
+  MOOD_OPTIONS,
   QUOTE_RETENTION_DAYS,
   geminiModelLabel,
   gradientClass,
@@ -67,6 +71,7 @@ function emptyCategory(sortOrder: number): CategoryInput {
 export function AdminDashboard({ overview }: { overview: AdminOverview }) {
   const router = useRouter();
   const toast = useToast();
+  const { userStats } = overview;
   const [busy, setBusy] = useState<string | null>(null);
 
   const [apiKey, setApiKey] = useState("");
@@ -169,6 +174,12 @@ export function AdminDashboard({ overview }: { overview: AdminOverview }) {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Link
+            href="/admin/users"
+            className="flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/70 transition hover:bg-white/10"
+          >
+            <Users className="h-3.5 w-3.5" /> Daftar User
+          </Link>
+          <Link
             href="/admin/quotes"
             className="flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/70 transition hover:bg-white/10"
           >
@@ -183,6 +194,106 @@ export function AdminDashboard({ overview }: { overview: AdminOverview }) {
           </button>
         </div>
       </header>
+
+      <section className="rounded-3xl border border-white/10 bg-white/5 p-5">
+        <div className="mb-1 flex items-center gap-2">
+          <Users className="h-4 w-4 text-emerald-300" />
+          <h2 className="text-sm font-bold">Statistik Pengguna</h2>
+        </div>
+        <p className="mb-4 text-xs text-white/50">
+          Data agregat saja. Isi diary user tidak pernah ditampilkan di sini.
+        </p>
+
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+            <div className="flex items-center gap-2 text-white/50">
+              <Users className="h-3.5 w-3.5" />
+              <span className="text-[11px] font-semibold uppercase tracking-wide">
+                Akun Terdaftar
+              </span>
+            </div>
+            <p className="mt-1 text-2xl font-extrabold">
+              {userStats.totalUsers}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+            <div className="flex items-center gap-2 text-white/50">
+              <BookOpen className="h-3.5 w-3.5" />
+              <span className="text-[11px] font-semibold uppercase tracking-wide">
+                Pernah Isi Diary
+              </span>
+            </div>
+            <p className="mt-1 text-2xl font-extrabold">
+              {userStats.usersWithJournal}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+            <div className="flex items-center gap-2 text-white/50">
+              <Heart className="h-3.5 w-3.5" />
+              <span className="text-[11px] font-semibold uppercase tracking-wide">
+                Total Entri Diary
+              </span>
+            </div>
+            <p className="mt-1 text-2xl font-extrabold">
+              {userStats.totalJournals}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-5">
+          <p className="mb-3 text-xs font-semibold text-white/60">
+            Suasana hati yang paling sering dipilih
+          </p>
+          {userStats.totalJournals === 0 ? (
+            <p className="text-xs text-white/50">
+              Belum ada entri diary dari user.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-2.5">
+              {MOOD_OPTIONS.map((option) => {
+                const count = userStats.moodCounts[option.value];
+                const percent =
+                  userStats.totalJournals > 0
+                    ? Math.round((count / userStats.totalJournals) * 100)
+                    : 0;
+                const isTop =
+                  userStats.topMood === option.value && count > 0;
+                return (
+                  <div key={option.value} className="flex items-center gap-3">
+                    <span className="w-8 text-center text-lg">
+                      {option.emoji}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-1 flex items-center justify-between gap-2">
+                        <span className="truncate text-xs font-semibold">
+                          {option.label}
+                          {isTop ? (
+                            <span className="ml-2 rounded-full bg-emerald-400/15 px-2 py-0.5 text-[10px] font-bold text-emerald-200">
+                              Terbanyak
+                            </span>
+                          ) : null}
+                        </span>
+                        <span className="shrink-0 text-[11px] text-white/50">
+                          {count} · {percent}%
+                        </span>
+                      </div>
+                      <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+                        <div
+                          className={cn(
+                            "h-full rounded-full",
+                            isTop ? "bg-emerald-400" : "bg-indigo-400/70",
+                          )}
+                          style={{ width: `${percent}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </section>
 
       <section className="grid gap-4 md:grid-cols-2">
         <div className="rounded-3xl border border-white/10 bg-white/5 p-5">

@@ -16,6 +16,8 @@ export const JOURNAL_MIN_WORDS = 20;
 export const JOURNAL_MAX_WORDS = 500;
 export const JOURNAL_HISTORY_DAYS = 30;
 
+export const ADMIN_USERS_PAGE_SIZE = 20;
+
 export const MOOD_OPTIONS: MoodOption[] = [
   { value: "SAD", emoji: "\u{1F62D}", label: "Berat Banget", hint: "sedih, capek hati" },
   { value: "TIRED", emoji: "\u{1FAE0}", label: "Pasrah / Capek", hint: "lelah, mau istirahat" },

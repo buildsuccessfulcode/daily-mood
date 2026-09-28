@@ -37,33 +37,41 @@ function ScrollRow({ children }: { children: ReactNode }) {
 
     let dragging = false;
     let moved = false;
+    let pointerId = -1;
     let startX = 0;
     let startLeft = 0;
+
+    const handlePointerMove = (event: PointerEvent) => {
+      if (!dragging || event.pointerId !== pointerId) return;
+      const dx = event.clientX - startX;
+      if (Math.abs(dx) > 4) moved = true;
+      el.scrollLeft = startLeft - dx;
+    };
+
+    const endDrag = (event: PointerEvent) => {
+      if (!dragging || event.pointerId !== pointerId) return;
+      dragging = false;
+      pointerId = -1;
+      el.style.cursor = "";
+      el.style.userSelect = "";
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", endDrag);
+      window.removeEventListener("pointercancel", endDrag);
+    };
 
     const handlePointerDown = (event: PointerEvent) => {
       if (event.pointerType !== "mouse" || event.button !== 0) return;
       if (el.scrollWidth <= el.clientWidth) return;
       dragging = true;
       moved = false;
+      pointerId = event.pointerId;
       startX = event.clientX;
       startLeft = el.scrollLeft;
       el.style.cursor = "grabbing";
       el.style.userSelect = "none";
-      el.setPointerCapture(event.pointerId);
-    };
-
-    const handlePointerMove = (event: PointerEvent) => {
-      if (!dragging) return;
-      const dx = event.clientX - startX;
-      if (Math.abs(dx) > 4) moved = true;
-      el.scrollLeft = startLeft - dx;
-    };
-
-    const endDrag = () => {
-      if (!dragging) return;
-      dragging = false;
-      el.style.cursor = "";
-      el.style.userSelect = "";
+      window.addEventListener("pointermove", handlePointerMove);
+      window.addEventListener("pointerup", endDrag);
+      window.addEventListener("pointercancel", endDrag);
     };
 
     const handleClickCapture = (event: MouseEvent) => {
@@ -75,17 +83,14 @@ function ScrollRow({ children }: { children: ReactNode }) {
 
     el.addEventListener("wheel", handleWheel, { passive: false });
     el.addEventListener("pointerdown", handlePointerDown);
-    el.addEventListener("pointermove", handlePointerMove);
-    el.addEventListener("pointerup", endDrag);
-    el.addEventListener("pointercancel", endDrag);
     el.addEventListener("click", handleClickCapture, true);
     return () => {
       el.removeEventListener("wheel", handleWheel);
       el.removeEventListener("pointerdown", handlePointerDown);
-      el.removeEventListener("pointermove", handlePointerMove);
-      el.removeEventListener("pointerup", endDrag);
-      el.removeEventListener("pointercancel", endDrag);
       el.removeEventListener("click", handleClickCapture, true);
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", endDrag);
+      window.removeEventListener("pointercancel", endDrag);
     };
   }, []);
 
